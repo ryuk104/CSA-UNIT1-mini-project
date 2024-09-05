@@ -1,5 +1,33 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Scanner;
+
+class User {
+    private String username;
+    private String password;
+    private SimpleBankingSystem bankAccount;
+
+    // Constructor for the User class
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+        this.bankAccount = new SimpleBankingSystem();  // Each user has their own bank account
+    }
+
+    // Getters for username and password
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    // Get the bank account associated with the user
+    public SimpleBankingSystem getBankAccount() {
+        return bankAccount;
+    }
+}
 
 class SimpleBankingSystem {
     private double balance;
@@ -51,50 +79,121 @@ class SimpleBankingSystem {
             }
         }
     }
+}
 
+class BankApp {
+    private HashMap<String, User> users;
+    private Scanner scanner;
 
+    // Constructor to initialize users map and scanner
+    public BankApp() {
+        users = new HashMap<>();
+        scanner = new Scanner(System.in);
+    }
 
-    // Main method to run the banking system
-    public static void main(String[] args) {
-        SimpleBankingSystem bank = new SimpleBankingSystem();
-        Scanner scanner = new Scanner(System.in);
-        int choice;
+    // Method to register a new user
+    public void register() {
+        System.out.print("Enter a username: ");
+        String username = scanner.nextLine();
+        if (users.containsKey(username)) {
+            System.out.println("Username already exists. Try again.");
+            return;
+        }
 
-        // Using a while loop to keep the program running until the user chooses to exit
+        System.out.print("Enter a password: ");
+        String password = scanner.nextLine();
+        users.put(username, new User(username, password));
+        System.out.println("Registration successful!");
+    }
+
+    // Method for users to login
+    public User login() {
+        System.out.print("Enter your username: ");
+        String username = scanner.nextLine();
+
+        System.out.print("Enter your password: ");
+        String password = scanner.nextLine();
+
+        if (users.containsKey(username) && users.get(username).getPassword().equals(password)) {
+            System.out.println("Login successful! Welcome " + username);
+            return users.get(username);
+        } else {
+            System.out.println("Invalid username or password. Try again.");
+            return null;
+        }
+    }
+
+    // Method to start the banking system with login/register options
+    public void start() {
+        while (true) {
+            System.out.println("\n=== Welcome to Simple Bank App ===");
+            System.out.println("1. Register");
+            System.out.println("2. Login");
+            System.out.println("3. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = Integer.parseInt(scanner.nextLine());
+
+            switch (choice) {
+                case 1:
+                    register();
+                    break;
+                case 2:
+                    User loggedInUser = login();
+                    if (loggedInUser != null) {
+                        runBankingSystem(loggedInUser.getBankAccount());
+                    }
+                    break;
+                case 3:
+                    System.out.println("Exiting the system...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    // Method to handle the banking system for a logged-in user
+    private void runBankingSystem(SimpleBankingSystem bankAccount) {
         while (true) {
             System.out.println("\n=== Banking System Menu ===");
             System.out.println("1. Deposit");
             System.out.println("2. Withdraw");
             System.out.println("3. Display Balance");
             System.out.println("4. Display Transactions");
-            System.out.println("5. Exit");
+            System.out.println("5. Logout");
             System.out.print("Enter your choice: ");
-            choice = scanner.nextInt();
+            int choice = Integer.parseInt(scanner.nextLine());
 
             switch (choice) {
                 case 1:
                     System.out.print("Enter amount to deposit: ");
-                    double depositAmount = scanner.nextDouble();
-                    bank.deposit(depositAmount);
+                    double depositAmount = Double.parseDouble(scanner.nextLine());
+                    bankAccount.deposit(depositAmount);
                     break;
                 case 2:
                     System.out.print("Enter amount to withdraw: ");
-                    double withdrawAmount = scanner.nextDouble();
-                    bank.withdraw(withdrawAmount);
+                    double withdrawAmount = Double.parseDouble(scanner.nextLine());
+                    bankAccount.withdraw(withdrawAmount);
                     break;
                 case 3:
-                    bank.displayBalance();
+                    bankAccount.displayBalance();
                     break;
                 case 4:
-                    bank.displayTransactions();
+                    bankAccount.displayTransactions();
                     break;
                 case 5:
-                    System.out.println("Exiting the banking system...");
-                    scanner.close();
-                    return;  // Exit the program
+                    System.out.println("Logging out...");
+                    return;
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
         }
+    }
+
+    // Main method to run the application
+    public static void main(String[] args) {
+        BankApp app = new BankApp();
+        app.start();
     }
 }
